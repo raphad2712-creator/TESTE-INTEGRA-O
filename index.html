@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Teste de integração PABX</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#eef3f8;color:#172b42;font:16px/1.6 system-ui,sans-serif}main{max-width:780px;margin:7vh auto;padding:28px}section{background:white;padding:28px;border-radius:16px;margin:20px 0;box-shadow:0 6px 24px #172b4209}h1{font-size:30px;line-height:1.2}h2{font-size:20px}small{color:#52657a}button{border:0;border-radius:8px;padding:13px 18px;background:#1258a6;color:white;font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #ea9700;outline-offset:4px}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:10px;border-bottom:1px solid #e3eaf0;overflow-wrap:anywhere}code{overflow-wrap:anywhere}#telefone{font-size:26px;font-weight:700;overflow-wrap:anywhere}.sucesso{color:#14643c}@media(max-width:500px){main{padding:16px}section{padding:20px}h1{font-size:25px}}
+  </style>
+</head>
+<body>
+<main>
+  <small>TESTE DE INTEGRAÇÃO</small>
+  <h1>Dados recebidos do PABX</h1>
+  <p>Esta página mostra os parâmetros recebidos no endereço. Ela não salva os dados nem os envia a outro servidor.</p>
+  <section aria-live="polite">
+    <h2 id="status">Página aberta</h2>
+    <p>Telefone recebido:</p>
+    <p id="telefone">Nenhum telefone recebido</p>
+    <p id="origem"></p>
+    <table id="dados" hidden><caption>Parâmetros recebidos</caption><thead><tr><th>Parâmetro</th><th>Valor</th></tr></thead><tbody id="linhas"></tbody></table>
+  </section>
+  <button id="simular" type="button">Simular com telefone fictício</button>
+  <p><small>A simulação testa esta página. A integração real precisa ser acionada pelo PABX.</small></p>
+  <section>
+    <h2>Como configurar no PABX</h2>
+    <ol>
+      <li>Publique este arquivo e copie o endereço HTTPS da página.</li>
+      <li>Em Nome, escreva <strong>TESTE DE INTEGRAÇÃO</strong>.</li>
+      <li>Selecione <strong>Abrir nova aba ao conectar chamada</strong>.</li>
+      <li>Em Link de Integração, coloque o endereço publicado desta página.</li>
+      <li>No nome do parâmetro, escreva <code>telefone</code>. Na lista ao lado, escolha o dado correspondente ao número do cliente, se disponível.</li>
+      <li>Insira o parâmetro e clique em <strong>Gerar Integração</strong>.</li>
+      <li>Confira onde o PABX exige vincular a integração ao atendimento e permita pop-ups para o PABX no navegador.</li>
+      <li>Faça uma chamada de teste e atenda. Se a ação estiver corretamente vinculada, esta página deverá abrir com os dados.</li>
+    </ol>
+    <p>O campo <code>telefone</code> precisa corresponder exatamente ao nome configurado. Para confirmar a opção do número e o vínculo, consulte as opções da sua tela do PABX.</p>
+  </section>
+</main>
+<script>
+  const params = new URLSearchParams(location.search);
+  const telefone = params.get('telefone');
+  const simulado = params.get('simulado') === '1';
+  if (telefone) {
+    document.getElementById('telefone').textContent = telefone;
+    document.getElementById('status').textContent = simulado ? 'Simulação concluída' : 'Parâmetro telefone recebido';
+    document.getElementById('status').className = 'sucesso';
+  }
+  document.getElementById('origem').textContent = simulado ? 'Dados fictícios inseridos pelo botão de simulação.' : 'A presença de parâmetros confirma o recebimento pela página; confirme a origem realizando a chamada no PABX.';
+  for (const [nome, valor] of params) {
+    const linha = document.createElement('tr');
+    for (const texto of [nome, valor]) {
+      const celula = document.createElement('td');
+      celula.textContent = texto;
+      linha.appendChild(celula);
+    }
+    document.getElementById('linhas').appendChild(linha);
+    document.getElementById('dados').hidden = false;
+  }
+  document.getElementById('simular').addEventListener('click', () => {
+    const endereco = new URL(location.href);
+    endereco.search = '';
+    endereco.searchParams.set('telefone', '11999999999');
+    endereco.searchParams.set('simulado', '1');
+    location.assign(endereco.href);
+  });
+</script>
+</body>
+</html>
